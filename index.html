@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TechStore — Компьютерная техника</title>
+
+  <link rel="stylesheet" href="style.css"/>
+
+  <!-- Leaflet (карта) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+</head>
+
+<body>
+  <header class="header">
+    <div class="container header__row">
+      <!-- SVG логотип: текст + анимированный градиент -->
+      <a class="brand" href="#" aria-label="На главную">
+        <svg class="brand__logo" viewBox="0 0 520 92" role="img" aria-label="TechStore">
+          <defs>
+            <linearGradient id="movingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"  stop-color="#7c3aed"/>
+              <stop offset="30%" stop-color="#06b6d4"/>
+              <stop offset="60%" stop-color="#22c55e"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+
+              <!-- Двигаем градиент за счет анимации координат -->
+              <animate attributeName="x1" values="-100%;0%;100%" dur="6s" repeatCount="indefinite"/>
+              <animate attributeName="x2" values="0%;100%;200%" dur="6s" repeatCount="indefinite"/>
+            </linearGradient>
+
+            <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="2.6" result="blur"/>
+              <feColorMatrix type="matrix" values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.8 0" />
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <text x="10" y="62" class="brand__text" fill="url(#movingGradient)" filter="url(#softGlow)">
+            TechStore
+          </text>
+
+          <!-- SVG “рисуемая” линия под логотипом -->
+          <path class="brand__underline" d="M12 76 C 120 92, 270 60, 508 78" />
+        </svg>
+      </a>
+
+      <nav class="nav">
+        <a href="#builder">Сборка ПК</a>
+        <a href="#map">Карта магазинов</a>
+        <a href="#about">О проекте</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero__grid">
+        <div>
+          <h1>Интернет-магазин компьютерной техники</h1>
+          <p class="muted">
+            Соберите системный блок с проверкой совместимости компонентов и посмотрите,
+            где удобнее забрать заказ — на карте магазинов и пунктов самовывоза.
+          </p>
+
+          <div class="hero__badges">
+            <span class="badge">Проверка сокета CPU/MB</span>
+            <span class="badge">DDR4 / DDR5</span>
+            <span class="badge">Оценка мощности PSU</span>
+            <span class="badge">Расчет доставки по км</span>
+          </div>
+        </div>
+
+        <!-- Декоративный SVG блок (анимация штриха) -->
+        <div class="hero__art" aria-hidden="true">
+          <svg viewBox="0 0 420 260" class="art">
+            <defs>
+              <linearGradient id="artGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#22c55e"/>
+                <stop offset="1" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+
+            <rect x="24" y="24" width="372" height="212" rx="22" class="art__panel"/>
+            <path class="art__path" d="M60 170
+              C 100 88, 160 210, 210 140
+              C 255 76, 295 182, 350 108" />
+            <circle cx="90" cy="125" r="8" class="art__dot"/>
+            <circle cx="210" cy="140" r="8" class="art__dot"/>
+            <circle cx="350" cy="108" r="8" class="art__dot"/>
+            <text x="48" y="70" class="art__label">SVG-анимация</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Конфигуратор -->
+    <section id="builder" class="section">
+      <div class="container">
+        <div class="section__title">
+          <h2>Сборка системного блока</h2>
+          <p class="muted">Выберите компоненты — совместимость проверится автоматически.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="card__title">Конфигуратор</h3>
+
+            <form id="pcForm" class="form">
+              <label class="field">
+                <span>Процессор (CPU)</span>
+                <select id="cpuSelect"></select>
+              </label>
+
+              <label class="field">
+                <span>Материнская плата (Motherboard)</span>
+                <select id="mbSelect"></select>
+              </label>
+
+              <label class="field">
+                <span>ОЗУ (RAM)</span>
+                <select id="ramSelect"></select>
+              </label>
+
+              <label class="field">
+                <span>Видеокарта (GPU)</span>
+                <select id="gpuSelect"></select>
+              </label>
+
+              <label class="field">
+                <span>Накопитель (SSD)</span>
+                <select id="storageSelect"></select>
+              </label>
+
+              <label class="field">
+                <span>Блок питания (PSU)</span>
+                <select id="psuSelect"></select>
+              </label>
+
+              <label class="field">
+                <span>Корпус (Case)</span>
+                <select id="caseSelect"></select>
+              </label>
+
+              <div class="form__actions">
+                <button type="button" id="autoPickBtn" class="btn">Автоподбор совместимой сборки</button>
+                <button type="button" id="resetBtn" class="btn btn--ghost">Сброс</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3 class="card__title">Результат</h3>
+
+            <div id="compatBox" class="compat"></div>
+
+            <div class="summary">
+              <div class="summary__row">
+                <span class="muted">Ориентировочное потребление</span>
+                <strong id="powerOut">—</strong>
+              </div>
+              <div class="summary__row">
+                <span class="muted">Итоговая цена</span>
+                <strong id="priceOut" class="price">—</strong>
+              </div>
+            </div>
+
+            <div class="note">
+              <strong>Примечание:</strong> проверка упрощенная (сокет/DDR/форм-фактор/мощность PSU).
+              В реальном магазине добавляют больше правил (QVL памяти, длина GPU, разъемы и т.п.).
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Карта -->
+    <section id="map" class="section section--alt">
+      <div class="container">
+        <div class="section__title">
+          <h2>Интерактивная карта продаж</h2>
+          <p class="muted">
+            Выберите магазин или пункт самовывоза — стоимость доставки считается по расстоянию до вашей точки.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="card__title">Настройки доставки</h3>
+
+            <div class="delivery">
+              <div class="delivery__row">
+                <span class="muted">Ваша точка (перетащите маркер на карте)</span>
+              </div>
+
+              <div class="delivery__row">
+                <span class="muted">Выбранная точка</span>
+                <strong id="selectedPoint">—</strong>
+              </div>
+
+              <div class="delivery__row">
+                <span class="muted">Расстояние</span>
+                <strong id="distanceOut">—</strong>
+              </div>
+
+              <div class="delivery__row">
+                <span class="muted">Стоимость доставки</span>
+                <strong id="deliveryOut" class="price">—</strong>
+              </div>
+
+              <div class="note">
+                Тариф: <strong>15 PLN</strong> базово + <strong>2 PLN/км</strong>.
+                Для <strong>пункта самовывоза</strong> — доставка <strong>0 PLN</strong>.
+              </div>
+            </div>
+
+            <div class="legend">
+              <div class="legend__item"><span class="dot dot--store"></span> Магазин</div>
+              <div class="legend__item"><span class="dot dot--pickup"></span> Пункт самовывоза</div>
+            </div>
+          </div>
+
+          <div class="card card--map">
+            <div id="leafletMap" class="map"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <div class="container">
+        <div class="section__title">
+          <h2>О проекте</h2>
+        </div>
+
+        <div class="card">
+          <p class="muted">
+            Проект демонстрирует JS-функционал: конфигуратор сборки ПК с правилами совместимости,
+            интерактивную карту с расчетом доставки и SVG-анимации.
+          </p>
+          <ul class="list">
+            <li>Данные компонентов и точек продаж хранятся локально в <code>app.js</code>.</li>
+            <li>Карта: Leaflet + OpenStreetMap.</li>
+            <li>SVG: анимированный градиент в тексте + stroke-dash “рисование” линии.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__row">
+      <span class="muted">© TechStore, демо</span>
+      <span class="muted">Frontend only</span>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
